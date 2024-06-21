@@ -1,27 +1,234 @@
 @tailwind base;
-@tailwind components;
-@tailwind utilities;
+  @tailwind components;
+  @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 200 20% 98%;
-    --btn-background: 200 10% 91%;
-    --btn-background-hover: 200 10% 89%;
-    --foreground: 200 50% 3%;
-  }
-
-  @media (prefers-color-scheme: dark) {
+  @layer base {
     :root {
-      --background: 200 50% 3%;
-      --btn-background: 200 10% 9%;
-      --btn-background-hover: 200 10% 12%;
-      --foreground: 200 20% 96%;
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+
+      --popover: 0 0% 100%;
+      --popover-foreground: 222.2 84% 4.9%;
+
+      --primary: 222.2 47.4% 11.2%;
+      --primary-foreground: 210 40% 98%;
+
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
+
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 222.2 84% 4.9%;
+
+      --radius: 0.5rem;
+
+      --main-bg: 0 0% 96.1%;
+      --content-bg: 0 0% 100%;
+      --border-color: 220 13% 91%;
+      --sidebar-bg: 0 0% 98%;
+    }
+
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+
+      --primary: 210 40% 98%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 40% 98%;
+
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      --ring: 212.7 26.8% 83.9%;
+
+      --main-bg: 222.2 84% 4.9%;
+      --content-bg: 223 47% 11%;
+      --border-color: 215 28% 17%;
+      --sidebar-bg: 220 26% 14%;
     }
   }
-}
 
-@layer base {
-  * {
-    @apply border-foreground/20;
+  @layer base {
+    * {
+      @apply border-border;
+    }
+    body {
+      @apply bg-background text-foreground;
+    }
   }
-}
+
+  @layer components {
+    .main-container {
+      @apply w-screen h-screen bg-[hsl(var(--main-bg))] p-2 overflow-hidden flex flex-col fixed;
+    }
+  
+    .top-bar {
+      @apply w-full flex-shrink-0 flex justify-between items-center gap-5 pb-[15px] pt-[7px] px-[15px];
+    }
+  
+    .main-content {
+      @apply flex flex-grow bg-[hsl(var(--content-bg))] w-full overflow-y-auto rounded-xl border border-[hsl(var(--border-color))];
+    }
+  
+    .left-panel {
+      @apply flex flex-col bg-[hsl(var(--sidebar-bg))] h-full w-[215px] border-r border-[hsl(var(--border-color))];
+    }
+  
+    .sidebar-section {
+      @apply flex flex-col gap-[2px] p-[10px];
+    }
+  
+
+    .right-panel {
+      @apply flex-grow flex flex-col h-full overflow-hidden;
+    }
+  
+    .right-top {
+      @apply flex p-[15px] items-center border-b border-[hsl(var(--border-color))] flex-shrink-0;
+    }
+  
+    .right-bottom {
+      @apply flex flex-grow overflow-hidden;
+    }
+  
+    .chat-area {
+      @apply bg-[hsl(var(--content-bg))] min-h-full;
+    }
+    
+    .chat-sidebar {
+      @apply w-[300px] p-[15px] border-l border-[hsl(var(--border-color))];
+    }
+
+    .chat-sidebar-left {
+      @apply w-[300px] p-[15px] border-r border-[hsl(var(--border-color))];
+    }
+  }
+  .react-flow__node-selectorNode {
+    font-size: 12px;
+    background: #eee;
+    border: 1px solid #555;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .dndflow {
+    flex-direction: column;
+    display: flex;
+    flex-grow: 1;
+    height: 100%;
+  }
+  
+  .dndflow aside {
+    border-right: 1px solid #eee;
+    padding: 15px 10px;
+    font-size: 12px;
+    background: #fcfcfc;
+  }
+  
+  .dndflow aside .description {
+    margin-bottom: 10px;
+  }
+  
+  .dndflow .dndnode {
+    height: 20px;
+    padding: 4px;
+    border: 1px solid #1a192b;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+  }
+  
+  .dndflow .dndnode.input {
+    border-color: #0041d0;
+  }
+  
+  .dndflow .dndnode.output {
+    border-color: #ff0072;
+  }
+  
+  .dndflow .dndnode.image {
+    background-color: #f0f0f0;
+    border-color: #00aaff;
+  }
+  
+  .dndflow .dndnode.audio {
+    background-color: #f0f0f0;
+    border-color: #ffaa00;
+  }
+  
+  .dndflow .dndnode.video {
+    background-color: #f0f0f0;
+    border-color: #aa00ff;
+  }
+  
+  .dndflow .reactflow-wrapper {
+    flex-grow: 1;
+    height: 100%;
+  }
+  
+  .dndflow .selectall {
+    margin-top: 10px;
+  }
+  
+  @media screen and (min-width: 768px) {
+    .dndflow {
+      flex-direction: row;
+    }
+  
+    .dndflow aside {
+      width: 20%;
+      max-width: 250px;
+    }
+  }
+
+  .custom-node {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+  }
+  
+  .custom-node-body {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .custom-handle {
+    width: 8px;
+    height: 8px;
+    background-color: #784be8;
+    border-radius: 50%;
+  }

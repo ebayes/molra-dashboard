@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  images: {
+    domains: ['storage.googleapis.com', 'bit.ly', 'earthengine.googleapis.com'],
+  },
+};
 
 module.exports = nextConfig;
