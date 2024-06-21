@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 // Simulate a database read for tasks.
 async function getTasks() {
   const data = await fs.readFile(
-    path.join("/Users/edbayes/Desktop/canopy/components/species/data/tasks.json")
+    path.join("./components/species/data/tasks.json")
   )
 
   const tasks = JSON.parse(data.toString())
