@@ -101,6 +101,11 @@
     .left-panel {
       @apply flex flex-col bg-[hsl(var(--sidebar-bg))] h-full w-[215px] border-r border-[hsl(var(--border-color))];
     }
+
+    .left-panel-small {
+      @apply flex flex-col bg-[hsl(var(--sidebar-bg))] h-full border-r border-[hsl(var(--border-color))];
+    }
+
   
     .sidebar-section {
       @apply flex flex-col gap-[2px] p-[10px];
@@ -231,4 +236,12 @@
     height: 8px;
     background-color: #784be8;
     border-radius: 50%;
+  }
+
+  .species-detection-point {
+    transform: translate(-50%, -50%);
+  }
+  
+  .species-detection-point:hover {
+    z-index: 10;
   }

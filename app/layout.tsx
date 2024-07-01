@@ -1,6 +1,8 @@
 import "./globals.css";
 import { Inter as FontSans } from "next/font/google"
 import { cn } from "@/lib/utils"
+import { StudySubsiteProvider } from "@/components/context/siteContext";
+import { InsightsProvider } from "@/components/context/insightsContext"
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -8,8 +10,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Canopy | The biodiversity community building the future",
-  description: "Canopy is a platform for building and sharing biodiversity data.",
+  title: "MOLRA",
+  description: "MOLRA",
 };
 
 const fontSans = FontSans({
@@ -30,10 +32,13 @@ export default function RootLayout({
           fontSans.variable
         )}
       >
-        
+        <StudySubsiteProvider>
+        <InsightsProvider>
           <main className="min-h-screen flex flex-col items-center">
             {children}
           </main>
+          </InsightsProvider>
+        </StudySubsiteProvider>
         
       </body>
     </html>

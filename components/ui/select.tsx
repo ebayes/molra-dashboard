@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Check, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -19,14 +19,21 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "flex h-[34px] gap-2 w-full items-center justify-between rounded-md pl-2 bg-transparent text-sm ring-offset-background placeholder:text-gray-500 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "focus:outline-none",
+      "transition-shadow duration-200 ease-in-out",
+      "hover:shadow-[inset_0_0_0_1px_#D9D9E3]",
+      "data-[state=open]:shadow-[inset_0_0_0_1px_#D9D9E3]",
+      "group",
       className
     )}
     {...props}
   >
     {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-4 w-4 opacity-50" />
+    <SelectPrimitive.Icon asChild className="px-2 py-2 rounded-r-md">
+      <div className="transition-all duration-200 ease-in-out group-hover:bg-white group-data-[state=open]:bg-white group-hover:shadow-[-1px_0_0_0_#D9D9E3,1px_0_0_0_#D9D9E3] group-data-[state=open]:shadow-[-1px_0_0_0_#D9D9E3,1px_0_0_0_#D9D9E3] pl-2">
+        <ChevronsUpDown className="h-4 w-4 opacity-50 transition-opacity duration-200 group-hover:opacity-90 group-data-[state=open]:opacity-90" />
+      </div>
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ))

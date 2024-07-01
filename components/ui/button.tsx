@@ -21,7 +21,9 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-[34px] px-3 py-2",
+        dropdown: "h-[34px] pr-8 py-2",
         accordion: "h-[34px] px-2 py-2",
+        xs: "h-6 w-6 p-0.5 flex items-center justify-center rounded-full",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-[34px] w-[34px] p-0 flex items-center justify-center",
