@@ -245,3 +245,15 @@
   .species-detection-point:hover {
     z-index: 10;
   }
+
+  .checkbox-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }

@@ -10,6 +10,12 @@ import BlankTopBar from "@/components/topbars/blank";
 import DSMTopBar from "@/components/topbars/dsm";
 import { Checkbox } from "@/components/ui/checkbox"
 import { CheckedState } from "@radix-ui/react-checkbox";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion-insights"
 
 export default function Main() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
@@ -191,124 +197,102 @@ export default function Main() {
               </Button>
             </div>
           </div>
-          <div id="eye">
-  <div className="flex items-center space-x-2">
-  <Checkbox
-                id="show-crowns"
-                checked={showCrowns}
-                onCheckedChange={handleCrownsChange}
-              />
-    <label
-      htmlFor="show-crowns"
-      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-    >
-      {showCrowns ? "Hide Crowns" : "Show Crowns"}
-    </label>
-  </div>
-  <div className="flex items-center space-x-2 mt-2">
-      <Checkbox
-        id="show-habitats"
-        checked={showHabitats}
-        onCheckedChange={handleHabitatsChange}
-      />
-      <label
-        htmlFor="show-habitats"
-        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-      >
-        {showHabitats ? "Hide Habitats" : "Show Habitats"}
-      </label>
-    </div>
-          <div className="flex items-center space-x-2 mt-2">
-  <Checkbox
-    id="show-dsm"
-    checked={showDSM}
-    onCheckedChange={handleDSMChange}
-  />
-  <label htmlFor="show-dsm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-    {showDSM ? "Hide DSM" : "Show DSM"}
-  </label>
-</div>
-          <div className="flex items-center space-x-2 mt-2">
-          <Checkbox
-  id="show-habitat-8-cats-uav"
-  checked={showHabitat8CatsUAV}
-  onCheckedChange={handleHabitat8CatsUAVChange}
-/>
-            <label htmlFor="show-habitat-8-cats-uav" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showHabitat8CatsUAV ? "Hide Habitat 8 Cats UAV" : "Show Habitat 8 Cats UAV"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox
-              id="show-habitat-3-cats-uav"
-              checked={showHabitat3CatsUAV}
-              onCheckedChange={handleHabitat3CatsUAVChange}
-            />
-            <label htmlFor="show-habitat-3-cats-uav" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showHabitat3CatsUAV ? "Hide Habitat 3 Cats UAV" : "Show Habitat 3 Cats UAV"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox
-              id="show-elevation-srtm"
-              checked={showElevationSRTM}
-              onCheckedChange={handleElevationSRTMChange}
-            />
-            <label htmlFor="show-elevation-srtm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showElevationSRTM ? "Hide Elevation SRTM" : "Show Elevation SRTM"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox
-              id="show-slope-srtm"
-              checked={showSlopeSRTM}
-              onCheckedChange={handleSlopeSRTMChange}
-            />
-            <label htmlFor="show-slope-srtm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showSlopeSRTM ? "Hide Slope SRTM" : "Show Slope SRTM"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox
-              id="show-canopy-height"
-              checked={showCanopyHeight}
-              onCheckedChange={handleCanopyHeightChange}
-            />
-            <label htmlFor="show-canopy-height" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showCanopyHeight ? "Hide Canopy Height" : "Show Canopy Height"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox
-              id="show-habitat-3-cats-rs"
-              checked={showHabitat3CatsRS}
-              onCheckedChange={handleHabitat3CatsRSChange}
-            />
-            <label htmlFor="show-habitat-3-cats-rs" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showHabitat3CatsRS ? "Hide Habitat 3 Cats RS" : "Show Habitat 3 Cats RS"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox
-              id="show-habitat-8-cats-rs"
-              checked={showHabitat8CatsRS}
-              onCheckedChange={handleHabitat8CatsRSChange}
-            />
-            <label htmlFor="show-habitat-8-cats-rs" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {showHabitat8CatsRS ? "Hide Habitat 8 Cats RS" : "Show Habitat 8 Cats RS"}
-            </label>
-          </div>
-          <div className="flex items-center space-x-2 mt-2">
-              <Checkbox
-                id="show-orthomosaic"
-                checked={showOrthomosaic}
-                onCheckedChange={handleOrthomosaicChange}
-              />
-              <label htmlFor="show-orthomosaic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {showOrthomosaic ? "Hide Orthomosaic" : "Show Orthomosaic"}
-              </label>
-            </div>
-</div>
+
+          <Accordion type="multiple" defaultValue={["item-1", "item-2", "item-3", "item-4"]}>
+          <AccordionItem value="item-4">
+    <AccordionTrigger>Imagery and Surface Models</AccordionTrigger>
+    <AccordionContent>
+      <div className="checkbox-container">
+      <div className="checkbox-item">
+          <Checkbox id="show-orthomosaic" defaultChecked={true} checked={showOrthomosaic} onCheckedChange={handleOrthomosaicChange} />
+          <label htmlFor="show-orthomosaic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Orthomosaic
+          </label>
+        </div>
+        <div className="checkbox-item">
+          <Checkbox id="show-dsm" checked={showDSM} onCheckedChange={handleDSMChange} />
+          <label htmlFor="show-dsm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            DSM (Digital Surface Model)
+          </label>
+        </div>
+        
+      </div>
+    </AccordionContent>
+  </AccordionItem>
+  <AccordionItem value="item-1">
+    <AccordionTrigger>Vegetation and Canopy Metrics</AccordionTrigger>
+    <AccordionContent>
+      <div className="checkbox-container">
+        <div className="checkbox-item">
+          <Checkbox id="show-crowns" checked={showCrowns} onCheckedChange={handleCrownsChange} />
+          <label htmlFor="show-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Crowns
+          </label>
+        </div>
+        <div className="checkbox-item">
+          <Checkbox id="show-canopy-height" checked={showCanopyHeight} onCheckedChange={handleCanopyHeightChange} />
+          <label htmlFor="show-canopy-height" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Canopy Height
+          </label>
+        </div>
+      </div>
+    </AccordionContent>
+  </AccordionItem>
+  
+  <AccordionItem value="item-2">
+    <AccordionTrigger>Habitat Classification</AccordionTrigger>
+    <AccordionContent>
+      <div className="checkbox-container">
+        <div className="checkbox-item">
+          <Checkbox id="show-habitat-8-cats-uav" checked={showHabitat8CatsUAV} onCheckedChange={handleHabitat8CatsUAVChange} />
+          <label htmlFor="show-habitat-8-cats-uav" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Habitat 8 Cats UAV
+          </label>
+        </div>
+        <div className="checkbox-item">
+          <Checkbox id="show-habitat-3-cats-uav" checked={showHabitat3CatsUAV} onCheckedChange={handleHabitat3CatsUAVChange} />
+          <label htmlFor="show-habitat-3-cats-uav" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Habitat 3 Cats UAV
+          </label>
+        </div>
+        <div className="checkbox-item">
+          <Checkbox id="show-habitat-3-cats-rs" checked={showHabitat3CatsRS} onCheckedChange={handleHabitat3CatsRSChange} />
+          <label htmlFor="show-habitat-3-cats-rs" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Habitat 3 Cats RS
+          </label>
+        </div>
+        <div className="checkbox-item">
+          <Checkbox id="show-habitat-8-cats-rs" checked={showHabitat8CatsRS} onCheckedChange={handleHabitat8CatsRSChange} />
+          <label htmlFor="show-habitat-8-cats-rs" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Habitat 8 Cats RS
+          </label>
+        </div>
+      </div>
+    </AccordionContent>
+  </AccordionItem>
+  
+  <AccordionItem value="item-3">
+    <AccordionTrigger>Topographic Data</AccordionTrigger>
+    <AccordionContent>
+      <div className="checkbox-container">
+        <div className="checkbox-item">
+          <Checkbox id="show-elevation-srtm" checked={showElevationSRTM} onCheckedChange={handleElevationSRTMChange} />
+          <label htmlFor="show-elevation-srtm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Elevation SRTM
+          </label>
+        </div>
+        <div className="checkbox-item">
+          <Checkbox id="show-slope-srtm" checked={showSlopeSRTM} onCheckedChange={handleSlopeSRTMChange} />
+          <label htmlFor="show-slope-srtm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Slope SRTM
+          </label>
+        </div>
+      </div>
+    </AccordionContent>
+  </AccordionItem>
+  
+
+</Accordion>
         </div>
       </div>
     </div>
