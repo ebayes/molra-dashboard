@@ -11,8 +11,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "MOLRA",
-  description: "MOLRA",
+  title: "MOLRA Ecosystems",
+  description: "MOLRA Ecosystems Page",
 };
 
 const fontSans = FontSans({
