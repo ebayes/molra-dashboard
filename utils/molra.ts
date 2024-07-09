@@ -61,3 +61,16 @@ export async function fetchAnnotations(observation_id: string, site_id: string) 
   const data = await response.json();
   return data;
 }
+
+export async function fetchGeoJSONData(url: string) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching GeoJSON data:", error);
+    return null;
+  }
+};

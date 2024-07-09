@@ -1,9 +1,12 @@
+"use client"
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useStudySubsite } from "@/components/context/siteContext";
 import { ImageType as BaseImageType } from '@/types/Types';
 
 interface ImageType extends BaseImageType {
   modality_level2: string;
+  area?: string; 
 }
 
 interface VisualDataItem {
@@ -21,9 +24,11 @@ interface VisualDataContextType {
   error: Error | null;
   user: any | null;
   loadUser: () => Promise<void>;
-  filterData: (taxa: string[], types: string[]) => void;
+  filterData: (taxa: string[], types: string[], areas: string[]) => void; 
   currentIndex: number;
   setCurrentIndex: React.Dispatch<React.SetStateAction<number>>;
+  selectedAreas: string[];
+  setSelectedAreas: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 interface VisualDataProviderProps {
@@ -41,6 +46,7 @@ export const VisualDataProvider: React.FC<VisualDataProviderProps> = ({ children
   const [user, setUser] = useState<any | null>(null);
   const [filteredData, setFilteredData] = useState<ImageType[] | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
 
   useEffect(() => {
     const fragment = window.location.hash.substring(1);
@@ -124,18 +130,20 @@ export const VisualDataProvider: React.FC<VisualDataProviderProps> = ({ children
     loadUser();
   }, []);
 
-  const filterData = useCallback((taxa: string[], types: string[]) => {
+  const filterData = useCallback((taxa: string[], types: string[], areas: string[]) => {
     if (!visualData) return;
   
-    if (taxa.length === 0 && types.length === 0) {
+    if (taxa.length === 0 && types.length === 0 && areas.length === 0) {
       setFilteredData(visualData);
       return;
     }
   
     const filtered = visualData.filter(item => {
       const typeMatch = types.length === 0 || types.includes(item.modality_level2);
+      const areaMatch = areas.length === 0 || (item.area && areas.includes(item.area.toLowerCase()));
+    
       
-      if (!typeMatch) return false;
+      if (!typeMatch || !areaMatch) return false;
       
       if (taxa.length === 0) return true;
       
@@ -168,7 +176,9 @@ export const VisualDataProvider: React.FC<VisualDataProviderProps> = ({ children
       loadUser, 
       filterData,
       currentIndex,
-      setCurrentIndex
+      setCurrentIndex,
+      selectedAreas,
+      setSelectedAreas,
     }}>
       {children}
     </VisualDataContext.Provider>
