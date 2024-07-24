@@ -27,7 +27,14 @@ import { useVisualData } from '@/components/context/VisualDataContext';
 import { intersects } from 'ol/extent';
 import WebGLTileLayer from 'ol/layer/WebGLTile';
 import { Geometry } from 'ol/geom';
+import { Layer } from 'ol/layer';
 
+interface DSMLayerConfig {
+  layer_url: string;
+  viz: {
+    [key: string]: any;
+  };
+}
 interface MetadataItem {
   label: string;
   value: (feature: FeatureProperties | null) => string;
@@ -87,18 +94,11 @@ interface OpenLayersMapProps {
   onFloweringCountChange: (count: number) => void;
   onPalmCountChange: (count: number) => void;
   onAverageMetricsChange: (metrics: { avgHeight: string; avgDiameter: string; avgBiomass: string }) => void;
-  showHabitats: boolean;
   showDSM: boolean;
-  showHabitat8CatsUAV: boolean;
-  showHabitat3CatsUAV: boolean;
-  showElevationSRTM: boolean;
-  showSlopeSRTM: boolean;
-  showCanopyHeight: boolean;
-  showHabitat3CatsRS: boolean;
-  showHabitat8CatsRS: boolean;
   showOrthomosaic: boolean;
   onDSMControlChange: (controls: any) => void;
   onDSMLayerUpdate: (updateFunction: (controls: any) => void) => void;
+  showSiteBoundary: boolean;
 }
 
 function elevation(xOffset: number, yOffset: number) {
@@ -152,26 +152,19 @@ function calculateQuarters(extent: number[]): number[][][] {
 
 function OpenLayersMap({ 
   showCrowns,
-  showHabitats,
   onFeatureCountChange,
   onCecropiaCountChange,
   onFloweringCountChange,
   onPalmCountChange,
   onAverageMetricsChange,
-  showHabitat8CatsUAV,
-  showHabitat3CatsUAV,
-  showElevationSRTM,
-  showSlopeSRTM,
-  showCanopyHeight,
-  showHabitat3CatsRS,
-  showHabitat8CatsRS,
   showOrthomosaic,
   showDSM,
   onDSMControlChange,
-  onDSMLayerUpdate
+  onDSMLayerUpdate,
+  showSiteBoundary
 }: OpenLayersMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const selectedSubsite = "6897d432-459d-47b5-af07-cc2b9f67d16d"
+  const selectedSubsite = "3f82dcca-45d6-464a-a01a-d2a598dc340f"
   const [map, setMap] = useState<Map | null>(null);
   const [crownsLayer, setCrownsLayer] = useState<any>(null);
   const [allFeatures, setAllFeatures] = useState<Feature[]>([]);
@@ -181,112 +174,71 @@ function OpenLayersMap({
   const [selectedFeature, setSelectedFeature] = useState<FeatureProperties | null>(null);
   const featuresPanelRef = useRef<HTMLDivElement | null>(null);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | number | null>(null);
-  const [quartersLayer, setQuartersLayer] = useState<any>(null);
-  const { selectedAreas } = useVisualData();
   const [dsmLayer, setDsmLayer] = useState<TileLayer<XYZ> | WebGLTileLayer | null>(null);
   const [additionalLayers, setAdditionalLayers] = useState({});
   const [orthomosaicLayer, setOrthomosaicLayer] = useState<any>(null);
+  const [dsmLayerConfig, setDsmLayerConfig] = useState<DSMLayerConfig | null>(null);
+  const [canopyLayerConfig, setCanopyLayerConfig] = useState(null);
+  const [siteBoundaryLayer, setSiteBoundaryLayer] = useState<Layer | null>(null);
 
-  const layerConfigs = [
-    {
-      name: 'Habitat - 8 cats; UAV',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/2bb40b874723c97d8a361e01636ecc2f-1e83db4dc6cb33c60a786ebee02cd2ef/tiles/{z}/{x}/{y}',
-      show: showHabitat8CatsUAV,
-      title: 'Habitat types'
-    },
-    {
-      name: 'Habitat - 3 cats;  UAV',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/5ba410313714e935db3ba9b01c8a4f76-303e63b5125a06897dda20b481de5d22/tiles/{z}/{x}/{y}',
-      show: showHabitat3CatsUAV,
-      title: 'Habitat types'
-    },
-    {
-      name: 'Elevation - SRTM',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/409d39f88ff0e8655b4cf5984ab1eee5-ad9006822fadcf0537c02e4b692062b0/tiles/{z}/{x}/{y}',
-      show: showElevationSRTM,
-      title: 'Vegetation and Terrain (RS, 10-30m)'
-    },
-    {
-      name: 'Slope - SRTM',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/e32731cb8596580fca6fa3cbff33b716-f7899c629dae07d1fd5064dd5d6d9c59/tiles/{z}/{x}/{y}',
-      show: showSlopeSRTM,
-      title: 'Vegetation and Terrain (RS, 10-30m)'
-    },
-    {
-      name: '10m Canopy Height Layer',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/a748ccace1aaa6f60c46cbc45d858727-356ff1773e4e23aa896b53354593efad/tiles/{z}/{x}/{y}',
-      show: showCanopyHeight,
-      title: 'Vegetation and Terrain (RS, 10-30m)'
-    },
-    {
-      name: 'Habitat- 3 cats; RS',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/3d391b603d494da3c2a0265a1577c6c7-e5939b8d010afba0f819982b4d8b52f9/tiles/{z}/{x}/{y}',
-      show: showHabitat3CatsRS,
-      title: 'Habitat types'
-    },
-    {
-      name: 'Habitat- 8 cats; RS',
-      url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/16e5f08beb54e8dbd5fc2c71b08dd7c1-6c09f281f3bbf2683cdd1734f6edda8f/tiles/{z}/{x}/{y}',
-      show: showHabitat8CatsRS,
-      title: 'Habitat types'
+  useEffect(() => {
+    if (!map || !canopyLayerConfig) return;
+  
+    if (showOrthomosaic && !orthomosaicLayer) {
+      const newOrthomosaicLayer = getOrthomosaicLayer([canopyLayerConfig]);
+      if (newOrthomosaicLayer) {
+        newOrthomosaicLayer.setVisible(true);
+        map.addLayer(newOrthomosaicLayer);
+        setOrthomosaicLayer(newOrthomosaicLayer);
+      }
+    } else if (orthomosaicLayer) {
+      orthomosaicLayer.setVisible(showOrthomosaic);
     }
-  ];
+  }, [map, canopyLayerConfig, showOrthomosaic, orthomosaicLayer]);
 
   useEffect(() => {
-    if (!map) return;
-  
-    layerConfigs.forEach(config => {
-      let layer = map.getLayers().getArray().find(layer => layer.get('name') === config.name);
-      
-      if (config.show && !layer) {
-        layer = new TileLayer({
-          source: new XYZ({
-            url: config.url,
-            maxZoom: 20,
-          }),
-          opacity: 0.7,
-          zIndex: 5, // Adjust as needed
-        });
-        layer.set('name', config.name); 
-        map.addLayer(layer);
-      } else if (!config.show && layer) {
-        map.removeLayer(layer);
-      }
-  
-      if (layer) {
-        layer.setVisible(config.show);
-      }
-    });
-  }, [map, showHabitat8CatsUAV, showHabitat3CatsUAV, showElevationSRTM, showSlopeSRTM, showCanopyHeight, showHabitat3CatsRS, showHabitat8CatsRS]);
-
-
-  useEffect(() => {
-    if (!map) return;
+    if (!map || !dsmLayerConfig) return;
   
     if (showDSM && !dsmLayer) {
-      const variables = {
-        opacity: 0.7,
-        sunEl: 45,
-        sunAz: 315,
-        vert: 1,
-      };
-  
       const newDsmLayer = new WebGLTileLayer({
         source: new XYZ({
-          url: 'https://earthengine.googleapis.com/v1alpha/projects/earthengine-legacy/maps/6e05ec4ba869c06498cdeed4a67360e1-48a321fe9c0046048c902d4b7d67a9a0/tiles/{z}/{x}/{y}',
+          url: dsmLayerConfig.layer_url,
           maxZoom: 20,
         }),
         style: {
-          variables: variables,
-          color: ['color', scaled, ['var', 'opacity']], 
+          variables: {
+            ...dsmLayerConfig.viz,
+            opacity: 0.7,
+            sunEl: 45,
+            sunAz: 315,
+            vert: 1,
+          },
+          color: ['color', scaled, ['var', 'opacity']],
         },
-        opacity: 1, 
+        opacity: 1,
         zIndex: 5,
       });
   
-      newDsmLayer.set('name', 'DSM Layer'); 
+      newDsmLayer.set('name', 'DSM Layer');
+      
+      const currentView = map.getView();
+      const currentCenter = currentView.getCenter();
+      const currentZoom = currentView.getZoom();      
+      
       map.addLayer(newDsmLayer);
       setDsmLayer(newDsmLayer);
+  
+      const dsmSource = newDsmLayer.getSource();
+      if (dsmSource && 'on' in dsmSource) {
+        dsmSource.on('tileloadend', () => {
+          if (currentCenter) {
+            map.getView().setCenter(currentCenter);
+          }
+          if (currentZoom !== undefined) {
+            map.getView().setZoom(currentZoom);
+          }
+        });
+      }
   
       onDSMLayerUpdate((controls) => {
         (newDsmLayer as WebGLTileLayer).updateStyleVariables({ ...controls, vert: 1 });
@@ -294,13 +246,13 @@ function OpenLayersMap({
     } else if (!showDSM && dsmLayer) {
       map.removeLayer(dsmLayer);
       setDsmLayer(null);
-      onDSMLayerUpdate(() => {}); // Pass an empty function instead of null
+      onDSMLayerUpdate(() => {});
     }
-  }, [map, showDSM, dsmLayer, onDSMLayerUpdate]);
+  }, [map, showDSM, dsmLayer, dsmLayerConfig, onDSMLayerUpdate]);
 
   const fetchAndProcessCrowns = useCallback(async () => {
     try {
-      const response = await fetch('./coata_crowns.geojson');
+      const response = await fetch('./xprize_crowns.geojson');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -322,141 +274,93 @@ function OpenLayersMap({
   }, []);
 
   useEffect(() => {
-    fetch('https://dev-dot-api-ras-dot-map-of-life.appspot.com/1.x/ras/sites')
+    fetch('https://dev-dot-api-ras-dot-map-of-life.appspot.com/1.x/ras/layers?site_id=3f82dcca-45d6-464a-a01a-d2a598dc340f')
       .then(response => response.json())
-      .then((data: SiteData[]) => {
-        const siteData = data.find((site: SiteData) => site.site_id === '6897d432-459d-47b5-af07-cc2b9f67d16d');
-        if (siteData?.extent?.geometry) {
-          setSiteGeometry(siteData.extent.geometry);
+      .then((data: any[]) => {
+        const dsmLayer = data.find(layer => layer.layer_name === 'DSM');
+        if (dsmLayer) {
+          setDsmLayerConfig(dsmLayer);
+        }
+  
+        const canopyLayer = data.find(layer => layer.layer_name === 'Canopy mosaic');
+        if (canopyLayer) {
+          setCanopyLayerConfig(canopyLayer);
         }
       })
-      .catch(error => console.error('Error fetching site data:', error));
+      .catch(error => console.error('Error fetching layer data:', error));
   }, []);
 
-  useEffect(() => {
-    if (!map) return;
-  
-    const layer = map.getLayers().getArray().find(layer => layer.get('name') === 'orthomosaic') as any;
-    if (layer) {
-      layer.setVisible(showOrthomosaic);
-      setOrthomosaicLayer(layer);
-    }
-  }, [map, showOrthomosaic]);
-  
-  useEffect(() => {
-    if (orthomosaicLayer) {
-      orthomosaicLayer.setVisible(showOrthomosaic);
-    }
-  }, [orthomosaicLayer, showOrthomosaic]);
 
   useEffect(() => {
     if (!map || !selectedSubsite) return;
-  
+
     const fetchAndDisplaySiteAndLayers = async () => {
       try {
         const sites = await fetchSites();
         const layers = await fetchLayers(selectedSubsite);
-        const vectorSource = new VectorSource();
         const selectedSite = sites.find((site: any) => site.site_id === selectedSubsite);
-    
-        if (selectedSite?.extent?.geometry?.coordinates) {
-          const coordinates = selectedSite.extent.geometry.coordinates[0].map((coord: number[]) => fromLonLat(coord));
+
+        if (selectedSite?.extent?.coordinates) {
+          const coordinates = selectedSite.extent.coordinates[0][0].map((coord: number[]) => fromLonLat(coord));
           const polygon = new Polygon([coordinates]);
-          vectorSource.addFeature(new Feature(polygon));
-    
+          const feature = new Feature(polygon);
+          const vectorSource = new VectorSource({
+            features: [feature]
+          });
+
+          const vectorLayer = new VectorLayer({
+            source: vectorSource,
+            style: new Style({
+              stroke: new Stroke({
+                color: 'rgba(0, 0, 255, 1)',
+                width: 2
+              }),
+              // Remove the fill style
+            }),
+            zIndex: 1
+          });
+
           // Remove existing vector layers except for the crowns layer
           map.getLayers().getArray()
             .filter(layer => layer instanceof VectorLayer && layer !== crownsLayer)
             .forEach(layer => map.removeLayer(layer));
-    
-          const vectorLayer = new VectorLayer({
-            source: vectorSource,
-            style: new Style({
-              fill: new Fill({
-                color: 'rgba(0, 0, 0, 0)' // Transparent fill
-              }),
-              stroke: new Stroke({
-                color: 'rgba(0, 0, 0, 0)', // Transparent stroke
-                width: 0
-              })
-            }),
-            zIndex: 1
-          });
+
           map.addLayer(vectorLayer);
-    
-          // Calculate quarters
-          const extent = polygon.getExtent();
-          const quarters = calculateQuarters(extent);
-    
-          // Create quarters layer
-          const quartersSource = new VectorSource();
-          quarters.forEach((quarterCoords, index) => {
-            const quarterPolygon = new Polygon([quarterCoords]);
-            const quarterFeature = new Feature(quarterPolygon);
-            quarterFeature.set('quarter', index + 1);
-            quartersSource.addFeature(quarterFeature);
+          setSiteBoundaryLayer(vectorLayer);
+
+          map.getView().fit(vectorSource.getExtent(), {
+            padding: [50, 50, 50, 50],
+            maxZoom: 19
           });
-    
-        const quartersLayer = new VectorLayer({
-          source: quartersSource,
-          style: (feature) => {
-            const quarterNames = ['SW', 'SE', 'NW', 'NE'];
-            return new Style({
-              fill: new Fill({
-                color: 'rgba(255, 255, 255, 0.2)'
-              }),
-              stroke: new Stroke({
-                color: '#0000FF',
-                width: 2
-              }),
-              text: new Text({
-                text: quarterNames[feature.get('quarter') - 1],
-                fill: new Fill({
-                  color: '#000000'
-                }),
-                stroke: new Stroke({
-                  color: '#FFFFFF',
-                  width: 2
-                })
-              })
-            });
-          },
-          zIndex: 2,
-          visible: showHabitats // Set initial visibility
-        });
-
-        map.addLayer(quartersLayer);
-        setQuartersLayer(quartersLayer);
-    
+  
           // Add orthomosaic layer
-      // Add orthomosaic layer
-      const orthomosaicLayers = layers.filter((layer: any) => layer.layer_name === "Canopy mosaic");
-      if (orthomosaicLayers.length > 0) {
-        const newOrthomosaicLayer = getOrthomosaicLayer(orthomosaicLayers);
-        if (newOrthomosaicLayer) {  // Add this null check
-          newOrthomosaicLayer.setVisible(showOrthomosaic);
-          map.getLayers().insertAt(1, newOrthomosaicLayer);
-          setOrthomosaicLayer(newOrthomosaicLayer);
+          const orthomosaicLayers = layers.filter((layer: any) => layer.layer_name === "Canopy mosaic");
+          if (orthomosaicLayers.length > 0) {
+            const newOrthomosaicLayer = getOrthomosaicLayer(orthomosaicLayers);
+            if (newOrthomosaicLayer) {
+              newOrthomosaicLayer.setVisible(showOrthomosaic);
+              map.getLayers().insertAt(1, newOrthomosaicLayer);
+              setOrthomosaicLayer(newOrthomosaicLayer);
+            } else {
+              console.error('Failed to create orthomosaic layer');
+            }
+          }
         } else {
-          console.error('Failed to create orthomosaic layer');
-        }
-      }
-
-      map.getView().fit(vectorSource.getExtent(), { padding: [50, 50, 50, 50] });
+          console.error('Selected site does not have valid extent coordinates');
         }
       } catch (error) {
         console.error('Error fetching site and layers:', error);
       }
     };
-  
+
     fetchAndDisplaySiteAndLayers();
-  }, [map, selectedSubsite, showOrthomosaic]);
+  }, [map, selectedSubsite]);
 
   useEffect(() => {
-    if (quartersLayer) {
-      quartersLayer.setVisible(showHabitats);
+    if (siteBoundaryLayer) {
+      siteBoundaryLayer.setVisible(showSiteBoundary);
     }
-  }, [showHabitats, quartersLayer]);
+  }, [showSiteBoundary, siteBoundaryLayer]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -665,40 +569,6 @@ function OpenLayersMap({
   
     crownsLayer.setStyle((feature: Feature<Geometry>) => updateFeatureStyle(feature));
   }, [map, crownsLayer, selectedFeatureId, hoveredFeature]);
-
-  useEffect(() => {
-    if (!map || !crownsLayer || !quartersLayer) return;
-  
-    const updateVisibleFeatures = () => {
-      const source = crownsLayer.getSource() as VectorSource<Feature<Geometry>>;
-      const features = source.getFeatures();
-  
-      features.forEach(feature => {
-        const featureExtent = feature.getGeometry()?.getExtent();
-        if (!featureExtent) return;
-        
-        let isVisible = selectedAreas.length === 0;
-  
-        if (!isVisible) {
-          (quartersLayer.getSource() as VectorSource<Feature<Geometry>>).getFeatures().forEach((quarterFeature, index) => {
-            const quarterName = ['SW', 'SE', 'NW', 'NE'][index];
-            if (selectedAreas.includes(quarterName.toLowerCase())) {
-              const quarterExtent = quarterFeature.getGeometry()?.getExtent();
-              if (quarterExtent && intersects(featureExtent, quarterExtent)) {
-                isVisible = true;
-              }
-            }
-          });
-        }
-  
-        feature.setStyle(isVisible ? undefined : new Style({}));
-      });
-  
-      crownsLayer.changed();
-    };
-  
-    updateVisibleFeatures();
-  }, [map, crownsLayer, quartersLayer, selectedAreas]);
 
   const featureDetails = [
     {

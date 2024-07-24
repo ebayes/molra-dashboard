@@ -20,7 +20,6 @@ import {
 export default function Main() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
   const [showCrowns, setShowCrowns] = useState(false);
-  const [showHabitats, setShowHabitats] = useState(false); 
   const [featureCount, setFeatureCount] = useState(0);
   const [cecropiaCount, setCecropiaCount] = useState(0);
   const [floweringCount, setFloweringCount] = useState(0);
@@ -29,20 +28,14 @@ export default function Main() {
   const [avgDiameter, setAvgDiameter] = useState(0);
   const [avgBiomass, setAvgBiomass] = useState(0);
   const [showDSM, setShowDSM] = useState(false);
-    const [showHabitat8CatsUAV, setShowHabitat8CatsUAV] = useState(false);
-  const [showHabitat3CatsUAV, setShowHabitat3CatsUAV] = useState(false);
-  const [showElevationSRTM, setShowElevationSRTM] = useState(false);
-  const [showSlopeSRTM, setShowSlopeSRTM] = useState(false);
-  const [showCanopyHeight, setShowCanopyHeight] = useState(false);
-  const [showHabitat3CatsRS, setShowHabitat3CatsRS] = useState(false);
-  const [showHabitat8CatsRS, setShowHabitat8CatsRS] = useState(false);
   const [showOrthomosaic, setShowOrthomosaic] = useState(false);
   const [updateDSMLayer, setUpdateDSMLayer] = useState<any>(null);
   const [showDSMControls, setShowDSMControls] = useState(false);
   const [activeTopBar, setActiveTopBar] = useState('blank');
+  const [showSiteBoundary, setShowSiteBoundary] = useState(true);
 
-    const handleHabitatsChange = (checked: CheckedState) => {
-    setShowHabitats(checked === true);
+  const handleSiteBoundaryChange = (checked: boolean) => {
+    setShowSiteBoundary(checked);
   };
 
   const handleDSMChange = (checked: boolean) => {
@@ -50,11 +43,6 @@ export default function Main() {
     setShowDSMControls(checked);
     setActiveTopBar(checked ? 'dsm' : 'blank');
   };
-
-  const handleHabitat8CatsUAVChange = (checked: CheckedState) => {
-    setShowHabitat8CatsUAV(checked === true);
-  };
-  
 
   const handleDSMControlChange = (controls: any) => {
     if (updateDSMLayer) {
@@ -93,39 +81,15 @@ export default function Main() {
   };
 
 
-  const handleCrownsChange = (checked: boolean) => {
-    setShowCrowns(checked);
-    setActiveTopBar(checked ? 'crowns' : 'blank');
+  const handleCrownsChange = (checked: CheckedState) => {
+    setShowCrowns(checked === true);
+    setActiveTopBar(checked === true ? 'crowns' : 'blank');
   };
 
   const handleOrthomosaicChange = (checked: boolean) => {
     setShowOrthomosaic(checked);
     setActiveTopBar(checked ? 'ortho' : 'blank');
   };
-  const handleHabitat3CatsUAVChange = (checked: CheckedState) => {
-    setShowHabitat3CatsUAV(checked === true);
-  };
-
-  const handleElevationSRTMChange = (checked: CheckedState) => {
-    setShowElevationSRTM(checked === true);
-  };
-
-  const handleSlopeSRTMChange = (checked: CheckedState) => {
-    setShowSlopeSRTM(checked === true);
-  };
-
-  const handleCanopyHeightChange = (checked: CheckedState) => {
-    setShowCanopyHeight(checked === true);
-  };
-
-  const handleHabitat3CatsRSChange = (checked: CheckedState) => {
-    setShowHabitat3CatsRS(checked === true);
-  };
-
-  const handleHabitat8CatsRSChange = (checked: CheckedState) => {
-    setShowHabitat8CatsRS(checked === true);
-  };
-
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -169,15 +133,8 @@ export default function Main() {
               onFloweringCountChange={handleFloweringCountChange}
               onPalmCountChange={handlePalmCountChange}
               onAverageMetricsChange={handleAverageMetricsChange}
-              showHabitats={showHabitats}
               showDSM={showDSM}
-              showHabitat8CatsUAV={showHabitat8CatsUAV}
-              showHabitat3CatsUAV={showHabitat3CatsUAV}
-              showElevationSRTM={showElevationSRTM}
-              showSlopeSRTM={showSlopeSRTM}
-              showCanopyHeight={showCanopyHeight}
-              showHabitat3CatsRS={showHabitat3CatsRS}
-              showHabitat8CatsRS={showHabitat8CatsRS}
+              showSiteBoundary={showSiteBoundary}
               showOrthomosaic={showOrthomosaic}
               onDSMControlChange={handleDSMControlChange}
               onDSMLayerUpdate={handleDSMLayerUpdate}
@@ -204,6 +161,12 @@ export default function Main() {
     <AccordionContent>
       <div className="checkbox-container">
       <div className="checkbox-item">
+          <Checkbox id="show-site-boundary" defaultChecked={true} checked={showSiteBoundary} onCheckedChange={handleSiteBoundaryChange} />
+          <label htmlFor="show-site-boundary" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Site Boundary
+          </label>
+        </div>
+      <div className="checkbox-item">
           <Checkbox id="show-orthomosaic" defaultChecked={true} checked={showOrthomosaic} onCheckedChange={handleOrthomosaicChange} />
           <label htmlFor="show-orthomosaic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Orthomosaic
@@ -227,64 +190,6 @@ export default function Main() {
           <Checkbox id="show-crowns" checked={showCrowns} onCheckedChange={handleCrownsChange} />
           <label htmlFor="show-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Crowns
-          </label>
-        </div>
-        <div className="checkbox-item">
-          <Checkbox id="show-canopy-height" checked={showCanopyHeight} onCheckedChange={handleCanopyHeightChange} />
-          <label htmlFor="show-canopy-height" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Canopy Height
-          </label>
-        </div>
-      </div>
-    </AccordionContent>
-  </AccordionItem>
-  
-  <AccordionItem value="item-2">
-    <AccordionTrigger>Habitat Classification</AccordionTrigger>
-    <AccordionContent>
-      <div className="checkbox-container">
-        <div className="checkbox-item">
-          <Checkbox id="show-habitat-8-cats-uav" checked={showHabitat8CatsUAV} onCheckedChange={handleHabitat8CatsUAVChange} />
-          <label htmlFor="show-habitat-8-cats-uav" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Habitat 8 Cats UAV
-          </label>
-        </div>
-        <div className="checkbox-item">
-          <Checkbox id="show-habitat-3-cats-uav" checked={showHabitat3CatsUAV} onCheckedChange={handleHabitat3CatsUAVChange} />
-          <label htmlFor="show-habitat-3-cats-uav" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Habitat 3 Cats UAV
-          </label>
-        </div>
-        <div className="checkbox-item">
-          <Checkbox id="show-habitat-3-cats-rs" checked={showHabitat3CatsRS} onCheckedChange={handleHabitat3CatsRSChange} />
-          <label htmlFor="show-habitat-3-cats-rs" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Habitat 3 Cats RS
-          </label>
-        </div>
-        <div className="checkbox-item">
-          <Checkbox id="show-habitat-8-cats-rs" checked={showHabitat8CatsRS} onCheckedChange={handleHabitat8CatsRSChange} />
-          <label htmlFor="show-habitat-8-cats-rs" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Habitat 8 Cats RS
-          </label>
-        </div>
-      </div>
-    </AccordionContent>
-  </AccordionItem>
-  
-  <AccordionItem value="item-3">
-    <AccordionTrigger>Topographic Data</AccordionTrigger>
-    <AccordionContent>
-      <div className="checkbox-container">
-        <div className="checkbox-item">
-          <Checkbox id="show-elevation-srtm" checked={showElevationSRTM} onCheckedChange={handleElevationSRTMChange} />
-          <label htmlFor="show-elevation-srtm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Elevation SRTM
-          </label>
-        </div>
-        <div className="checkbox-item">
-          <Checkbox id="show-slope-srtm" checked={showSlopeSRTM} onCheckedChange={handleSlopeSRTMChange} />
-          <label htmlFor="show-slope-srtm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Slope SRTM
           </label>
         </div>
       </div>

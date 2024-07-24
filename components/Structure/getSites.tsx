@@ -35,7 +35,7 @@ export function SiteSwitcher() {
         if (sitesData.length > 0) {
           const firstParentId = sitesData.find((site: { parent_id: string | null }) => site.parent_id !== null && site.parent_id !== '').parent_id;
           setSelectedParentId(firstParentId);
-          const defaultSubsite = "6897d432-459d-47b5-af07-cc2b9f67d16d";
+          const defaultSubsite = "3f82dcca-45d6-464a-a01a-d2a598dc340f";
           const subsiteExists = sitesData.some((site: { site_id: string }) => site.site_id === defaultSubsite);
           setSelectedSubsite(subsiteExists ? defaultSubsite : sitesData.find((site: { parent_id: string }) => site.parent_id === firstParentId).site_id);
         }
@@ -80,7 +80,7 @@ export function SiteSwitcher() {
           setSelectedSubsite(value);
           console.log('Selected subsite ID:', value);
         }} 
-        value={selectedSubsite || "6897d432-459d-47b5-af07-cc2b9f67d16d"}
+        value={selectedSubsite || "3f82dcca-45d6-464a-a01a-d2a598dc340f"}
       >
         <SelectTrigger>
           {loading ? <Skeleton className="h-4 w-full" /> : <SelectValue placeholder="Select study subsite" />}
