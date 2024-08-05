@@ -8,6 +8,13 @@ import { DataTableFacetedFilter } from "./faceted-filter";
 import { Crown, Diameter, Ruler, Cannabis, Flower, Palmtree, Weight } from "lucide-react";
 import { useVisualData } from '@/components/context/VisualDataContext';
 import { PanelLeftClose } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
 
 interface CrownsTopBarProps {
   featureCount: number;
@@ -19,6 +26,9 @@ interface CrownsTopBarProps {
   avgBiomass: number;
   toggleRightPanel: () => void;
   isRightPanelVisible: boolean;
+  onHistogramToggle: (type: string | null) => void;
+  onMetricToggle: (metric: string) => void;
+  selectedMetric: string | null;
 }
 
 export default function CrownsTopBar({
@@ -30,7 +40,10 @@ export default function CrownsTopBar({
   avgDiameter,
   avgBiomass,
   toggleRightPanel,
-  isRightPanelVisible
+  isRightPanelVisible,
+  onHistogramToggle,
+  onMetricToggle,
+  selectedMetric
 }: CrownsTopBarProps) {
   const { selectedAreas, setSelectedAreas, filterData } = useVisualData();
   const [selectedTaxa, setSelectedTaxa] = useState<string[]>([]);
@@ -60,51 +73,117 @@ export default function CrownsTopBar({
     filterData([], [], []);
   }, [filterData, setSelectedAreas, setSelectedStatuses]);
   
+  const handleHistogramClick = (type: string) => {
+    onHistogramToggle(type);
+  };
 
-  const areas = [
-    { label: "NW", value: "nw" },
-    { label: "NE", value: "ne" },
-    { label: "SW", value: "sw" },
-    { label: "SE", value: "se" },
-  ];
-
-  const areaOptions = areas.map(area => ({ label: area.label, value: area.value }));
+  const handleMetricClick = (metric: string) => {
+    onMetricToggle(metric);
+  };
 
   return (
     <div id="top-bar" className='flex w-full items-center justify-between pb-[8px]'>
       <div className="flex items-center gap-2">
-        {/* <p className='text-gray-600 text-xs'>Tree crowns:</p> */}
-        <Badge variant="yellow">
-          <Crown className="mr-2 h-4 w-4" />
-          {featureCount}
-        </Badge>
-        <Badge variant="green">
-          <Cannabis className="mr-2 h-4 w-4" />
-          {cecropiaCount}
-        </Badge>
-        <Badge variant="pink">
-          <Flower className="mr-2 h-4 w-4" />
-          {floweringCount}
-        </Badge>
-        <Badge variant="secondary">
-          <Palmtree className="mr-2 h-4 w-4" />
-          {palmCount}
-        </Badge>
-        <p className='text-gray-300'>|</p>
-        {/* <p className='text-gray-600 text-xs'>Average dimensions:</p> */}
-        <Badge variant="secondary">
-          <Ruler className="mr-2 h-4 w-4" />
-          {avgHeight}m
-        </Badge>
-        <Badge variant="secondary">
-          <Diameter className="mr-2 h-4 w-4" />
-          {avgDiameter}m
-        </Badge>
-        <Badge variant="secondary">
-          <Weight className="mr-2 h-4 w-4" />
-          {avgBiomass}kg
-        </Badge>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="yellow">
+                <Crown className="mr-2 h-4 w-4" />
+                {featureCount}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Total tree crowns</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+         
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="green">
+                <Cannabis className="mr-2 h-4 w-4" />
+                8
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Cecropia count</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="pink">
+                <Flower className="mr-2 h-4 w-4" />
+                219
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Flowering canopies</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="secondary">
+                <Palmtree className="mr-2 h-4 w-4" />
+                284
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Pinnately leaved palms</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         
+        <p className='text-gray-300'>|</p>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="secondary" onClick={() => handleHistogramClick('tree_height')}>
+                <Ruler className="mr-2 h-4 w-4" />
+                31.56m
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Average height (click for histogram)</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="secondary" onClick={() => handleHistogramClick('crown_diameter')}>
+                <Diameter className="mr-2 h-4 w-4" />
+                10.30m
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Average diameter (click for histogram)</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="secondary" onClick={() => handleHistogramClick('tree_biomass')}>
+                <Weight className="mr-2 h-4 w-4" />
+                383.17kg
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Average biomass (click for histogram)</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
       </div>
       <div className="flex flex-1 items-center justify-end space-x-2">
         <div className="flex items-center space-x-2">
@@ -118,12 +197,7 @@ export default function CrownsTopBar({
               <Cross2Icon className="ml-2 h-4 w-4" />
             </Button>
           )}
-    <DataTableFacetedFilter
-      title="Area"
-      options={areaOptions}
-      selectedValues={selectedAreas}
-      onChange={handleAreasChange}
-    />
+
       <Button 
             size="icon" 
             onClick={toggleRightPanel} 

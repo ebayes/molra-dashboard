@@ -16,6 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion-insights"
+import Image from 'next/image';
 
 export default function Main() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
@@ -33,10 +34,17 @@ export default function Main() {
   const [showDSMControls, setShowDSMControls] = useState(false);
   const [activeTopBar, setActiveTopBar] = useState('blank');
   const [showSiteBoundary, setShowSiteBoundary] = useState(true);
+  const [activeHistogram, setActiveHistogram] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
 
   const handleSiteBoundaryChange = (checked: boolean) => {
     setShowSiteBoundary(checked);
   };
+
+  const handleHistogramToggle = (type: string | null) => {
+    setActiveHistogram(activeHistogram === type ? null : type);
+  };
+
 
   const handleDSMChange = (checked: boolean) => {
     setShowDSM(checked);
@@ -91,6 +99,11 @@ export default function Main() {
     setActiveTopBar(checked ? 'ortho' : 'blank');
   };
 
+  const handleMetricToggle = (metric: string) => {
+    setSelectedMetric(selectedMetric === metric ? null : metric);
+  };
+
+
   return (
     <div className="flex flex-col h-full w-full">
       <div id="right-bottom" className="right-bottom flex h-full px-[15px] pb-[15px] pt-[8px] gap-[15px]">
@@ -106,6 +119,9 @@ export default function Main() {
               avgBiomass={avgBiomass}
               toggleRightPanel={toggleRightPanel}
               isRightPanelVisible={isRightPanelVisible}
+              onHistogramToggle={handleHistogramToggle}
+              onMetricToggle={handleMetricToggle}
+              selectedMetric={selectedMetric}        
             />
           )}
           {activeTopBar === 'ortho' && (
@@ -138,7 +154,18 @@ export default function Main() {
               showOrthomosaic={showOrthomosaic}
               onDSMControlChange={handleDSMControlChange}
               onDSMLayerUpdate={handleDSMLayerUpdate}
+              selectedMetric={selectedMetric}
             />
+              {activeHistogram && (
+              <div className="absolute bottom-4 right-4 w-64 h-48">
+                <Image
+                  src={`/${activeHistogram}_histogram.png`}
+                  alt={`${activeHistogram} histogram`}
+                  layout="fill"
+                  objectFit="contain"
+                />
+              </div>
+            )}
           </div>
         </div>
         <div id="right" className={`w-[250px] min-w-[250px] flex flex-col gap-1 ${isRightPanelVisible ? 'hidden lg:flex' : 'hidden'}`}>

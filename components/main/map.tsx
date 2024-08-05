@@ -99,6 +99,7 @@ interface OpenLayersMapProps {
   onDSMControlChange: (controls: any) => void;
   onDSMLayerUpdate: (updateFunction: (controls: any) => void) => void;
   showSiteBoundary: boolean;
+  selectedMetric: string | null;
 }
 
 function elevation(xOffset: number, yOffset: number) {
@@ -161,7 +162,8 @@ function OpenLayersMap({
   showDSM,
   onDSMControlChange,
   onDSMLayerUpdate,
-  showSiteBoundary
+  showSiteBoundary,
+  selectedMetric
 }: OpenLayersMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const selectedSubsite = "3f82dcca-45d6-464a-a01a-d2a598dc340f"
@@ -550,15 +552,29 @@ function OpenLayersMap({
   }, [map, crownsLayer]);
 
   useEffect(() => {
-    if (!map || !crownsLayer) return;
-  
+    if (!map || !crownsLayer || !allFeatures) return;
+
     const updateFeatureStyle = (feature: Feature<Geometry>) => {
       const isSelected = feature.get('id') === selectedFeatureId;
       const isHovered = feature.get('id') === (hoveredFeature as any)?.id;
-  
+
+      let fillColor = 'rgba(255, 0, 0, 0.5)';
+
+      if (selectedMetric) {
+        const value = feature.get('properties')[selectedMetric];
+        const maxValue = Math.max(...allFeatures.map(f => f.get('properties')[selectedMetric]));
+        const minValue = Math.min(...allFeatures.map(f => f.get('properties')[selectedMetric]));
+        const normalizedValue = (value - minValue) / (maxValue - minValue);
+        
+        // Create a color gradient from blue (low) to red (high)
+        const r = Math.round(normalizedValue * 255);
+        const b = Math.round((1 - normalizedValue) * 255);
+        fillColor = `rgba(${r}, 0, ${b}, 0.5)`;
+      }
+
       return new Style({
         fill: new Fill({
-          color: isSelected || isHovered ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 0, 0, 0.5)'
+          color: isSelected || isHovered ? 'rgba(255, 255, 255, 0.5)' : fillColor
         }),
         stroke: new Stroke({
           color: isSelected || isHovered ? '#0000ff' : '#ff0000',
@@ -566,9 +582,10 @@ function OpenLayersMap({
         })
       });
     };
-  
+
     crownsLayer.setStyle((feature: Feature<Geometry>) => updateFeatureStyle(feature));
-  }, [map, crownsLayer, selectedFeatureId, hoveredFeature]);
+  }, [map, crownsLayer, selectedFeatureId, hoveredFeature, selectedMetric, allFeatures]);
+
 
   const featureDetails = [
     {
@@ -681,7 +698,7 @@ function OpenLayersMap({
               <AccordionTrigger>Crown Image</AccordionTrigger>
               <AccordionContent>
                 <Image 
-                  src={`https://abxnjdiyqerzhvjxxnei.supabase.co/storage/v1/object/public/crowns/${(selectedFeature || hoveredFeature)?.properties?.id ?? 'default'}.png`} 
+                  src={`https://abxnjdiyqerzhvjxxnei.supabase.co/storage/v1/object/public/tree_crowns/${(selectedFeature || hoveredFeature)?.properties?.id ?? 'default'}.png`} 
                   alt="Crown" 
                   width={80}
                   height={80}
