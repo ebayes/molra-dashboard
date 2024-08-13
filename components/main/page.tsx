@@ -36,6 +36,7 @@ export default function Main() {
   const [showSiteBoundary, setShowSiteBoundary] = useState(true);
   const [activeHistogram, setActiveHistogram] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  const [selectedCrownType, setSelectedCrownType] = useState<'all' | 'cecropia' | 'fallen' | 'flowering' | 'palms'>('all');
 
   const handleSiteBoundaryChange = (checked: boolean) => {
     setShowSiteBoundary(checked);
@@ -88,9 +89,9 @@ export default function Main() {
     setAvgBiomass(parseFloat(avgBiomass));
   };
 
-
-  const handleCrownsChange = (checked: CheckedState) => {
+  const handleCrownsChange = (checked: CheckedState, crownType: 'all' | 'cecropia' | 'fallen' | 'flowering' | 'palms') => {
     setShowCrowns(checked === true);
+    setSelectedCrownType(crownType);
     setActiveTopBar(checked === true ? 'crowns' : 'blank');
   };
 
@@ -155,6 +156,7 @@ export default function Main() {
               onDSMControlChange={handleDSMControlChange}
               onDSMLayerUpdate={handleDSMLayerUpdate}
               selectedMetric={selectedMetric}
+              selectedCrownType={selectedCrownType}             
             />
               {activeHistogram && (
               <div className="absolute bottom-4 right-4 w-64 h-48">
@@ -209,19 +211,64 @@ export default function Main() {
       </div>
     </AccordionContent>
   </AccordionItem>
+
   <AccordionItem value="item-1">
-    <AccordionTrigger>Vegetation and Canopy Metrics</AccordionTrigger>
-    <AccordionContent>
-      <div className="checkbox-container">
-        <div className="checkbox-item">
-          <Checkbox id="show-crowns" checked={showCrowns} onCheckedChange={handleCrownsChange} />
-          <label htmlFor="show-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Crowns
-          </label>
+      <AccordionTrigger>Tree crowns</AccordionTrigger>
+      <AccordionContent>
+        <div className="checkbox-container">
+          <div className="checkbox-item">
+            <Checkbox 
+              id="show-all-crowns" 
+              checked={showCrowns && selectedCrownType === 'all'} 
+              onCheckedChange={(checked) => handleCrownsChange(checked, 'all')} 
+            />
+            <label htmlFor="show-all-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              All Crowns
+            </label>
+          </div>
+          <div className="checkbox-item">
+            <Checkbox 
+              id="show-cecropia-crowns" 
+              checked={showCrowns && selectedCrownType === 'cecropia'} 
+              onCheckedChange={(checked) => handleCrownsChange(checked, 'cecropia')} 
+            />
+            <label htmlFor="show-cecropia-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Cecropia Crowns
+            </label>
+          </div>
+          <div className="checkbox-item">
+            <Checkbox 
+              id="show-fallen-crowns" 
+              checked={showCrowns && selectedCrownType === 'fallen'} 
+              onCheckedChange={(checked) => handleCrownsChange(checked, 'fallen')} 
+            />
+            <label htmlFor="show-fallen-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Fallen Trees
+            </label>
+          </div>
+          <div className="checkbox-item">
+            <Checkbox 
+              id="show-flowering-crowns" 
+              checked={showCrowns && selectedCrownType === 'flowering'} 
+              onCheckedChange={(checked) => handleCrownsChange(checked, 'flowering')} 
+            />
+            <label htmlFor="show-flowering-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Flowering Canopy
+            </label>
+          </div>
+          <div className="checkbox-item">
+            <Checkbox 
+              id="show-palm-crowns" 
+              checked={showCrowns && selectedCrownType === 'palms'} 
+              onCheckedChange={(checked) => handleCrownsChange(checked, 'palms')} 
+            />
+            <label htmlFor="show-palm-crowns" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Pinnately Leaved Palms
+            </label>
+          </div>
         </div>
-      </div>
-    </AccordionContent>
-  </AccordionItem>
+      </AccordionContent>
+    </AccordionItem>
   
 
 </Accordion>

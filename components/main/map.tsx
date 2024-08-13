@@ -89,6 +89,7 @@ interface GeoJSONFeature {
 
 interface OpenLayersMapProps {
   showCrowns: boolean;
+  selectedCrownType: 'all' | 'cecropia' | 'fallen' | 'flowering' | 'palms';
   onFeatureCountChange: (count: number) => void;
   onCecropiaCountChange: (count: number) => void;
   onFloweringCountChange: (count: number) => void;
@@ -163,7 +164,8 @@ function OpenLayersMap({
   onDSMControlChange,
   onDSMLayerUpdate,
   showSiteBoundary,
-  selectedMetric
+  selectedMetric,
+  selectedCrownType
 }: OpenLayersMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const selectedSubsite = "3f82dcca-45d6-464a-a01a-d2a598dc340f"
@@ -254,7 +256,28 @@ function OpenLayersMap({
 
   const fetchAndProcessCrowns = useCallback(async () => {
     try {
-      const response = await fetch('./xprize_crowns.geojson');
+      let geoJSONPath;
+      switch (selectedCrownType) {
+        case 'all':
+          geoJSONPath = './crowns/full_projection.geojson';
+          break;
+        case 'cecropia':
+          geoJSONPath = './crowns/cecropia.geojson';
+          break;
+        case 'fallen':
+          geoJSONPath = './crowns/fallen_tree.geojson';
+          break;
+        case 'flowering':
+          geoJSONPath = './crowns/flowering_canopy.geojson';
+          break;
+        case 'palms':
+          geoJSONPath = './crowns/pinnately_leaved_palms.geojson';
+          break;
+        default:
+          geoJSONPath = './crowns/full_projection.geojson';
+      }
+
+      const response = await fetch(geoJSONPath);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -273,7 +296,7 @@ function OpenLayersMap({
       console.error('Error fetching crowns:', error);
       return [];
     }
-  }, []);
+  }, [selectedCrownType]);
 
   useEffect(() => {
     fetch('https://dev-dot-api-ras-dot-map-of-life.appspot.com/1.x/ras/layers?site_id=3f82dcca-45d6-464a-a01a-d2a598dc340f')
@@ -472,7 +495,7 @@ function OpenLayersMap({
         map.removeLayer(crownsLayer);
       }
     };
-  }, [map, selectedSubsite, fetchAndProcessCrowns, onFeatureCountChange, onCecropiaCountChange, onFloweringCountChange, onPalmCountChange, onAverageMetricsChange]);
+  }, [map, selectedSubsite, fetchAndProcessCrowns, onFeatureCountChange, onCecropiaCountChange, onFloweringCountChange, onPalmCountChange, onAverageMetricsChange, selectedCrownType]);
 
   useEffect(() => {
     if (crownsLayer) {
@@ -652,14 +675,6 @@ function OpenLayersMap({
               : 'N/A',
           unit: "m"
         },
-        { 
-          label: "Biomass", 
-          value: (feature: FeatureProperties | null) => 
-            feature?.properties?.biomass != null
-              ? `${feature.properties.biomass.toFixed(2)}`
-              : 'N/A',
-          unit: "kg"
-        },
       ] as MetadataItem[],
     },
   ];
@@ -670,7 +685,7 @@ function OpenLayersMap({
         <div 
           ref={featuresPanelRef}
           id="features-panel" 
-          className={`absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg w-[250px] h-[500px] overflow-auto ${
+          className={`absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg w-[250px] h-[205px] overflow-auto ${
             selectedFeature ? 'border-2 border-green-500' : ''
           }`}
         >
@@ -694,22 +709,8 @@ function OpenLayersMap({
               </AccordionItem>
             ))}
           {((selectedFeature || hoveredFeature)?.properties?.id) && (
-            <AccordionItem value="item-3">
-              <AccordionTrigger>Crown Image</AccordionTrigger>
-              <AccordionContent>
-                <Image 
-                  src={`https://abxnjdiyqerzhvjxxnei.supabase.co/storage/v1/object/public/tree_crowns/${(selectedFeature || hoveredFeature)?.properties?.id ?? 'default'}.png`} 
-                  alt="Crown" 
-                  width={80}
-                  height={80}
-                  className="w-full h-auto mt-2"
-                  onError={(e) => {
-                    e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
-                    e.currentTarget.classList.add("bg-gray-300");
-                  }}
-                />
-              </AccordionContent>
-            </AccordionItem>
+            <>
+            </>
           )}
         </Accordion>
       </div>

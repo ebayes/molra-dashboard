@@ -89,7 +89,7 @@ export default function CrownsTopBar({
             <TooltipTrigger>
               <Badge variant="yellow">
                 <Crown className="mr-2 h-4 w-4" />
-                {featureCount}
+                Total crowns: {featureCount}
               </Badge>
             </TooltipTrigger>
             <TooltipContent>
@@ -98,6 +98,7 @@ export default function CrownsTopBar({
           </Tooltip>
         </TooltipProvider>
          
+         {/*
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -169,20 +170,7 @@ export default function CrownsTopBar({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="secondary" onClick={() => handleHistogramClick('tree_biomass')}>
-                <Weight className="mr-2 h-4 w-4" />
-                383.17kg
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Average biomass (click for histogram)</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+         */}
 
       </div>
       <div className="flex flex-1 items-center justify-end space-x-2">
