@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PanelLeftOpen, PanelLeftClose, Eye, EyeOff } from "lucide-react";
+import { PanelLeftOpen, PanelLeftClose, Eye, EyeOff, Download } from "lucide-react";
 import OpenLayersMap from "./map";
 import CrownsTopBar from "@/components/topbars/crowns";
 import OrthoTopBar from "@/components/topbars/ortho";
@@ -43,9 +43,26 @@ export default function Main() {
   };
 
   const handleHistogramToggle = (type: string | null) => {
-    setActiveHistogram(activeHistogram === type ? null : type);
-  };
+    if (!selectedCrownType) return;
 
+    const crownTypePrefix = selectedCrownType === 'all' ? 'all' : 
+                            selectedCrownType === 'palms' ? 'palm' :
+                            selectedCrownType === 'flowering' ? 'flowering' :
+                            selectedCrownType === 'cecropia' ? 'cecropia' : null;
+
+    if (!crownTypePrefix) {
+      setActiveHistogram(null);
+      return;
+    }
+
+    if (type === 'tree_height') {
+      setActiveHistogram(activeHistogram === `${crownTypePrefix}_height_histogram` ? null : `${crownTypePrefix}_height_histogram`);
+    } else if (type === 'crown_diameter') {
+      setActiveHistogram(activeHistogram === `${crownTypePrefix}_diameter_histogram` ? null : `${crownTypePrefix}_diameter_histogram`);
+    } else {
+      setActiveHistogram(null);
+    }
+  };
 
   const handleDSMChange = (checked: boolean) => {
     setShowDSM(checked);
@@ -83,16 +100,42 @@ export default function Main() {
     setPalmCount(count);
   };
 
-  const handleAverageMetricsChange = ({ avgHeight, avgDiameter, avgBiomass }: { avgHeight: string; avgDiameter: string; avgBiomass: string }) => {
-    setAvgHeight(parseFloat(avgHeight));
-    setAvgDiameter(parseFloat(avgDiameter));
-    setAvgBiomass(parseFloat(avgBiomass));
-  };
-
   const handleCrownsChange = (checked: CheckedState, crownType: 'all' | 'cecropia' | 'fallen' | 'flowering' | 'palms') => {
     setShowCrowns(checked === true);
     setSelectedCrownType(crownType);
     setActiveTopBar(checked === true ? 'crowns' : 'blank');
+    
+    // Hide the histogram whenever the checkbox changes
+    setActiveHistogram(null);
+  
+    if (checked === true) {
+      switch (crownType) {
+        case 'all':
+          setAvgHeight(31.66);
+          setAvgDiameter(9.3);
+          break;
+        case 'palms':
+          setAvgHeight(31.77);
+          setAvgDiameter(7.91);
+          break;
+        case 'flowering':
+          setAvgHeight(33.96);
+          setAvgDiameter(10.34);
+          break;
+        case 'cecropia':
+          setAvgHeight(36.18);
+          setAvgDiameter(8.95);
+          break;
+        case 'fallen':
+          setAvgHeight(0);
+          setAvgDiameter(0);
+          break;
+      }
+    } else {
+      // Reset values when unchecked
+      setAvgHeight(0);
+      setAvgDiameter(0);
+    }
   };
 
   const handleOrthomosaicChange = (checked: boolean) => {
@@ -142,32 +185,47 @@ export default function Main() {
               isRightPanelVisible={isRightPanelVisible}
             />
           )}
-          <div id="image-frame" className="flex-grow border rounded-lg overflow-hidden relative p-[14px] box-border flex items-center justify-center border-[hsl(var(--border-color))]">
-          <OpenLayersMap 
-              showCrowns={showCrowns}
-              onFeatureCountChange={handleFeatureCountChange}
-              onCecropiaCountChange={handleCecropiaCountChange}
-              onFloweringCountChange={handleFloweringCountChange}
-              onPalmCountChange={handlePalmCountChange}
-              onAverageMetricsChange={handleAverageMetricsChange}
-              showDSM={showDSM}
-              showSiteBoundary={showSiteBoundary}
-              showOrthomosaic={showOrthomosaic}
-              onDSMControlChange={handleDSMControlChange}
-              onDSMLayerUpdate={handleDSMLayerUpdate}
-              selectedMetric={selectedMetric}
-              selectedCrownType={selectedCrownType}             
-            />
-              {activeHistogram && (
-              <div className="absolute bottom-4 right-4 w-64 h-48">
-                <Image
-                  src={`/${activeHistogram}_histogram.png`}
-                  alt={`${activeHistogram} histogram`}
-                  layout="fill"
-                  objectFit="contain"
-                />
-              </div>
-            )}
+<div id="image-frame" className="flex-grow border rounded-lg overflow-hidden relative p-[14px] box-border flex items-center justify-center border-[hsl(var(--border-color))]">
+<OpenLayersMap 
+  showCrowns={showCrowns}
+  onFeatureCountChange={handleFeatureCountChange}
+  onCecropiaCountChange={handleCecropiaCountChange}
+  onFloweringCountChange={handleFloweringCountChange}
+  onPalmCountChange={handlePalmCountChange}
+  showDSM={showDSM}
+  showSiteBoundary={showSiteBoundary}
+  showOrthomosaic={showOrthomosaic}
+  onDSMControlChange={handleDSMControlChange}
+  onDSMLayerUpdate={handleDSMLayerUpdate}
+  selectedMetric={selectedMetric}
+  selectedCrownType={selectedCrownType}
+/>
+  {activeHistogram && (
+    <div className="absolute bottom-4 left-4 w-80 h-48 z-10">
+      <Image
+        src={`/histograms/${activeHistogram}.png`}
+        alt={`${activeHistogram}`}
+        layout="fill"
+        objectFit="contain"
+      />
+      <Button
+        variant="secondary"
+        size="sm"
+        className="absolute top-2 right-2 z-20"
+        onClick={() => {
+        const link = document.createElement('a');
+        link.href = `/histograms/${activeHistogram}.png`;
+        link.download = `${activeHistogram}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }}
+    >
+      <Download className="w-4 h-4 mr-1" />
+      Download
+    </Button>
+  </div>
+)}
           </div>
         </div>
         <div id="right" className={`w-[250px] min-w-[250px] flex flex-col gap-1 ${isRightPanelVisible ? 'hidden lg:flex' : 'hidden'}`}>
@@ -269,7 +327,6 @@ export default function Main() {
         </div>
       </AccordionContent>
     </AccordionItem>
-  
 
 </Accordion>
         </div>

@@ -103,12 +103,20 @@ export function TaxaSelectionDropdown({ detection, onSelect, open, onOpenChange 
     const [open, setOpen] = React.useState(false)
     const [options, setOptions] = useState<Species[]>([]);
     const [loading, setLoading] = useState(false);
+    
+    const getDisplayValue = (value: string | null | undefined) => {
+      if (value === 'branches' || value === 'unknown' || !value) {
+        return 'Unlabeled';
+      }
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    };
+  
     const [selectedValue, setSelectedValue] = React.useState<string | null>(
-      detection?.label || selectedTaxa || null
+      getDisplayValue(detection?.label || selectedTaxa)
     )
   
     React.useEffect(() => {
-      setSelectedValue(detection?.label || selectedTaxa || null)
+      setSelectedValue(getDisplayValue(detection?.label || selectedTaxa))
     }, [detection, selectedTaxa])
   
     useEffect(() => {
@@ -144,7 +152,7 @@ export function TaxaSelectionDropdown({ detection, onSelect, open, onOpenChange 
     }, [selectedSubsite, selectedTaxa, taxonomicLevel, detection?.filterTaxa]);
   
     const handleSelect = (value: string) => {
-      setSelectedValue(value)
+      setSelectedValue(getDisplayValue(value))
       onSelect(value)
       setOpen(false)
     }
@@ -171,16 +179,16 @@ export function TaxaSelectionDropdown({ detection, onSelect, open, onOpenChange 
   
     return (
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="link" size="dropdown" className="w-[120px] justify-start">
-            <div className="w-[120px] text-sm truncate text-left">
-              {selectedValue || `Select ${taxonomicLevel}`}
-            </div>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0" align="start">
-          {content}
-        </PopoverContent>
-      </Popover>
+      <PopoverTrigger asChild>
+        <Button variant="link" size="dropdown" className="w-[120px] justify-start">
+          <div className="w-[120px] text-sm truncate text-left">
+            {selectedValue || `Select ${taxonomicLevel}`}
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0" align="start">
+        {content}
+      </PopoverContent>
+    </Popover>
     )
   }

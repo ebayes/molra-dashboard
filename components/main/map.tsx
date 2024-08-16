@@ -94,7 +94,6 @@ interface OpenLayersMapProps {
   onCecropiaCountChange: (count: number) => void;
   onFloweringCountChange: (count: number) => void;
   onPalmCountChange: (count: number) => void;
-  onAverageMetricsChange: (metrics: { avgHeight: string; avgDiameter: string; avgBiomass: string }) => void;
   showDSM: boolean;
   showOrthomosaic: boolean;
   onDSMControlChange: (controls: any) => void;
@@ -158,7 +157,6 @@ function OpenLayersMap({
   onCecropiaCountChange,
   onFloweringCountChange,
   onPalmCountChange,
-  onAverageMetricsChange,
   showOrthomosaic,
   showDSM,
   onDSMControlChange,
@@ -276,25 +274,55 @@ function OpenLayersMap({
         default:
           geoJSONPath = './crowns/full_projection.geojson';
       }
-
+  
       const response = await fetch(geoJSONPath);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const geoJSONData = await response.json();
       const projection = 'EPSG:3857';
-      return geoJSONData.features.map((feature: GeoJSONFeature) => {
+      
+      let totalDiameter = 0;
+      let totalHeight = 0;
+      let featureCount = 0;
+  
+      const features = geoJSONData.features.map((feature: GeoJSONFeature) => {
         const geometry = new GeoJSON().readGeometry(feature.geometry, {
           featureProjection: projection
         });
+        
+        // Calculate totals for averaging
+        if (feature.properties.crown_diameter) {
+          totalDiameter += feature.properties.crown_diameter;
+        }
+        if (feature.properties.highest_height) {
+          totalHeight += feature.properties.highest_height;
+        }
+        featureCount++;
+  
         return new Feature({
           geometry: geometry,
           properties: feature.properties
         });
       });
+  
+      const avgDiameter = featureCount > 0 ? totalDiameter / featureCount : 0;
+      const avgHeight = featureCount > 0 ? totalHeight / featureCount : 0;
+  
+      return {
+        features,
+        avgDiameter,
+        avgHeight,
+        featureCount
+      };
     } catch (error) {
       console.error('Error fetching crowns:', error);
-      return [];
+      return {
+        features: [],
+        avgDiameter: 0,
+        avgHeight: 0,
+        featureCount: 0
+      };
     }
   }, [selectedCrownType]);
 
@@ -424,37 +452,25 @@ function OpenLayersMap({
     const displayCrowns = async () => {
       try {
         console.log('Fetching crowns data...');
-        const features = await fetchAndProcessCrowns();
-        console.log('Number of features:', features.length);
-        console.log('Sample feature properties:', features[0].getProperties());
-    
+        const { features, avgDiameter, avgHeight, featureCount } = await fetchAndProcessCrowns();
+        console.log('Number of features:', featureCount);
+        
         setAllFeatures(features);
-        onFeatureCountChange(features.length);
-
+        onFeatureCountChange(featureCount);
+  
         // Count specific types
         const cecropiaCount = features.filter((f: Feature<Geometry>) => f.get('properties')?.level === 'cecropia').length;
         const floweringCount = features.filter((f: Feature<Geometry>) => f.get('properties')?.level === 'flowering').length;
         const palmCount = features.filter((f: Feature<Geometry>) => f.get('properties')?.level === 'palm').length;
-
+  
         onCecropiaCountChange(cecropiaCount);
         onFloweringCountChange(floweringCount);
         onPalmCountChange(palmCount);
-
-        // Calculate totals
-        const totalHeight = features.reduce((sum: number, f: Feature<Geometry>) => sum + (f.get('properties')?.highest_height || 0), 0);
-        const totalDiameter = features.reduce((sum: number, f: Feature<Geometry>) => sum + (f.get('properties')?.crown_diameter || 0), 0);
-        const totalBiomass = features.reduce((sum: number, f: Feature<Geometry>) => sum + (f.get('properties')?.biomass || 0), 0);
-
-        // Calculate averages
-        const avgHeight = totalHeight / features.length;
-        const avgDiameter = totalDiameter / features.length;
-        const avgBiomass = totalBiomass / features.length;
-
-        onAverageMetricsChange({
-          avgHeight: avgHeight.toFixed(2),
-          avgDiameter: avgDiameter.toFixed(2),
-          avgBiomass: avgBiomass.toFixed(2)
-        });
+  
+        // Remove existing crowns layer if it exists
+        if (crownsLayer) {
+          map.removeLayer(crownsLayer);
+        }
   
         const vectorSource = new VectorSource({
           features: features
@@ -471,7 +487,7 @@ function OpenLayersMap({
               width: 2
             })
           }),
-          zIndex: 10, // Ensure crowns layer is on top
+          zIndex: 10,
           visible: showCrowns
         });
   
@@ -479,9 +495,6 @@ function OpenLayersMap({
         map.addLayer(newCrownsLayer);
         setCrownsLayer(newCrownsLayer);
   
-        // Fit the view to the features
-        const extent = vectorSource.getExtent();
-        // map.getView().fit(extent, { padding: [50, 50, 50, 50], maxZoom: 19 });
       } catch (error) {
         console.error('Error fetching or processing crowns data:', error);
       }
@@ -495,7 +508,7 @@ function OpenLayersMap({
         map.removeLayer(crownsLayer);
       }
     };
-  }, [map, selectedSubsite, fetchAndProcessCrowns, onFeatureCountChange, onCecropiaCountChange, onFloweringCountChange, onPalmCountChange, onAverageMetricsChange, selectedCrownType]);
+  }, [map, selectedSubsite, fetchAndProcessCrowns, showCrowns, selectedCrownType]);
 
   useEffect(() => {
     if (crownsLayer) {
@@ -638,7 +651,13 @@ function OpenLayersMap({
               />
               <TaxaDropdown 
                 detection={feature?.properties as any}
-                selectedTaxa={feature?.properties?.label ?? 'Unknown'}
+                selectedTaxa={
+                  feature?.properties?.label === 'branches' || 
+                  feature?.properties?.label === 'unknown' || 
+                  !feature?.properties?.label ? 
+                  'Unlabeled' : 
+                  feature?.properties?.label
+                }
                 taxonomicLevel={mapLevel(feature?.properties?.level)}
                 onSelect={(value) => {
                   console.log("Selected taxa:", value);

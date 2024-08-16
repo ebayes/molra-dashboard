@@ -15,7 +15,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-
 interface CrownsTopBarProps {
   featureCount: number;
   cecropiaCount: number;
@@ -97,81 +96,39 @@ export default function CrownsTopBar({
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-         
-         {/*
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="green">
-                <Cannabis className="mr-2 h-4 w-4" />
-                8
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Cecropia count</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="pink">
-                <Flower className="mr-2 h-4 w-4" />
-                219
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Flowering canopies</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="secondary">
-                <Palmtree className="mr-2 h-4 w-4" />
-                284
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Pinnately leaved palms</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        
         <p className='text-gray-300'>|</p>
+        {avgHeight > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="secondary" onClick={() => handleHistogramClick('tree_height')}>
+                  <Ruler className="mr-2 h-4 w-4" />
+                  {avgHeight.toFixed(2)}m
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Average height (click for histogram)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="secondary" onClick={() => handleHistogramClick('tree_height')}>
-                <Ruler className="mr-2 h-4 w-4" />
-                31.56m
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Average height (click for histogram)</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <Badge variant="secondary" onClick={() => handleHistogramClick('crown_diameter')}>
-                <Diameter className="mr-2 h-4 w-4" />
-                10.30m
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Average diameter (click for histogram)</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-         */}
-
+        {avgDiameter > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="secondary" onClick={() => handleHistogramClick('crown_diameter')}>
+                  <Diameter className="mr-2 h-4 w-4" />
+                  {avgDiameter.toFixed(2)}m
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Average diameter (click for histogram)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
       <div className="flex flex-1 items-center justify-end space-x-2">
         <div className="flex items-center space-x-2">
@@ -186,19 +143,15 @@ export default function CrownsTopBar({
             </Button>
           )}
 
-      <Button 
+          <Button 
             size="icon" 
             onClick={toggleRightPanel} 
             className={`${!isRightPanelVisible ? 'flex' : 'hidden'}`}
           >
             <PanelLeftClose className="w-4 h-4" />
           </Button>
-     
         </div>
-       
-         
       </div>
-      
     </div>
   );
 }
