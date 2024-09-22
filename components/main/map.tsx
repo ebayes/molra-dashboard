@@ -23,11 +23,10 @@ import Image from 'next/image';
 import { TaxaBadge } from "@/components/ui/taxabadge2";
 import { TaxaDropdown } from "@/components/ui/taxa-dropdown";
 import { Badge } from "@/components/ui/badge";
-import { useVisualData } from '@/components/context/VisualDataContext';
-import { intersects } from 'ol/extent';
 import WebGLTileLayer from 'ol/layer/WebGLTile';
 import { Geometry } from 'ol/geom';
 import { Layer } from 'ol/layer';
+import { Progress } from "@/components/ui/progress"
 
 interface DSMLayerConfig {
   layer_url: string;
@@ -182,6 +181,8 @@ function OpenLayersMap({
   const [dsmLayerConfig, setDsmLayerConfig] = useState<DSMLayerConfig | null>(null);
   const [canopyLayerConfig, setCanopyLayerConfig] = useState(null);
   const [siteBoundaryLayer, setSiteBoundaryLayer] = useState<Layer | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     if (!map || !canopyLayerConfig) return;
@@ -344,70 +345,71 @@ function OpenLayersMap({
   }, []);
 
 
-  useEffect(() => {
-    if (!map || !selectedSubsite) return;
+// Add this state to track if the initial centering has been done
+const [initialCenteringDone, setInitialCenteringDone] = useState(false);
 
-    const fetchAndDisplaySiteAndLayers = async () => {
-      try {
-        const sites = await fetchSites();
-        const layers = await fetchLayers(selectedSubsite);
-        const selectedSite = sites.find((site: any) => site.site_id === selectedSubsite);
+useEffect(() => {
+  if (!map || !selectedSubsite || initialCenteringDone) return;
 
-        if (selectedSite?.extent?.coordinates) {
-          const coordinates = selectedSite.extent.coordinates[0][0].map((coord: number[]) => fromLonLat(coord));
-          const polygon = new Polygon([coordinates]);
-          const feature = new Feature(polygon);
-          const vectorSource = new VectorSource({
-            features: [feature]
-          });
+  const fetchAndDisplaySiteAndLayers = async () => {
+    try {
+      const sites = await fetchSites();
+      const layers = await fetchLayers(selectedSubsite);
+      const selectedSite = sites.find((site: any) => site.site_id === selectedSubsite);
 
-          const vectorLayer = new VectorLayer({
-            source: vectorSource,
-            style: new Style({
-              stroke: new Stroke({
-                color: 'rgba(0, 0, 255, 1)',
-                width: 2
-              }),
-              // Remove the fill style
+      if (selectedSite?.extent?.coordinates) {
+        const coordinates = selectedSite.extent.coordinates[0][0].map((coord: number[]) => fromLonLat(coord));
+        const polygon = new Polygon([coordinates]);
+        const feature = new Feature(polygon);
+        const vectorSource = new VectorSource({
+          features: [feature]
+        });
+
+        const vectorLayer = new VectorLayer({
+          source: vectorSource,
+          style: new Style({
+            stroke: new Stroke({
+              color: 'rgba(0, 0, 255, 1)',
+              width: 2
             }),
-            zIndex: 1
-          });
+          }),
+          zIndex: 1
+        });
 
-          // Remove existing vector layers except for the crowns layer
-          map.getLayers().getArray()
-            .filter(layer => layer instanceof VectorLayer && layer !== crownsLayer)
-            .forEach(layer => map.removeLayer(layer));
+        map.addLayer(vectorLayer);
+        setSiteBoundaryLayer(vectorLayer);
 
-          map.addLayer(vectorLayer);
-          setSiteBoundaryLayer(vectorLayer);
+        // Center and zoom the map to fit the site boundary
+        map.getView().fit(vectorSource.getExtent(), {
+          padding: [50, 50, 50, 50],
+          maxZoom: 19,
+          duration: 1000 // Add a smooth animation
+        });
 
-          map.getView().fit(vectorSource.getExtent(), {
-            padding: [50, 50, 50, 50],
-            maxZoom: 19
-          });
-  
-          // Add orthomosaic layer
-          const orthomosaicLayers = layers.filter((layer: any) => layer.layer_name === "Canopy mosaic");
-          if (orthomosaicLayers.length > 0) {
-            const newOrthomosaicLayer = getOrthomosaicLayer(orthomosaicLayers);
-            if (newOrthomosaicLayer) {
-              newOrthomosaicLayer.setVisible(showOrthomosaic);
-              map.getLayers().insertAt(1, newOrthomosaicLayer);
-              setOrthomosaicLayer(newOrthomosaicLayer);
-            } else {
-              console.error('Failed to create orthomosaic layer');
-            }
+        setInitialCenteringDone(true); // Mark initial centering as done
+
+        // Add orthomosaic layer
+        const orthomosaicLayers = layers.filter((layer: any) => layer.layer_name === "Canopy mosaic");
+        if (orthomosaicLayers.length > 0) {
+          const newOrthomosaicLayer = getOrthomosaicLayer(orthomosaicLayers);
+          if (newOrthomosaicLayer) {
+            newOrthomosaicLayer.setVisible(showOrthomosaic);
+            map.getLayers().insertAt(1, newOrthomosaicLayer);
+            setOrthomosaicLayer(newOrthomosaicLayer);
+          } else {
+            console.error('Failed to create orthomosaic layer');
           }
-        } else {
-          console.error('Selected site does not have valid extent coordinates');
         }
-      } catch (error) {
-        console.error('Error fetching site and layers:', error);
+      } else {
+        console.error('Selected site does not have valid extent coordinates');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching site and layers:', error);
+    }
+  };
 
-    fetchAndDisplaySiteAndLayers();
-  }, [map, selectedSubsite]);
+  fetchAndDisplaySiteAndLayers();
+}, [map, selectedSubsite, initialCenteringDone]);
 
   useEffect(() => {
     if (siteBoundaryLayer) {
@@ -415,34 +417,61 @@ function OpenLayersMap({
     }
   }, [showSiteBoundary, siteBoundaryLayer]);
 
-  useEffect(() => {
-    if (!mapRef.current) return;
-  
-    const key = 'kz7JcWA0duN5sxz7zyRG';
-    const attributions =
-      '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
-      '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
-  
-    const source = new XYZ({
-      attributions: attributions,
-      url: `https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${key}`,
-      tileSize: 512,
-    });
-  
-    const initialMap = new Map({
-      layers: [new TileLayer({ source: source })],
-      target: mapRef.current,
-      view: new View({
-        center: [0, 0],
-        zoom: 2,
-      }),
-    });
-  
+useEffect(() => {
+  if (!mapRef.current) return;
+
+  const key = 'kz7JcWA0duN5sxz7zyRG';
+  const attributions =
+    '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
+    '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
+
+  const source = new XYZ({
+    attributions: attributions,
+    url: `https://api.maptiler.com/maps/satellite/{z}/{x}/{y}.jpg?key=${key}`,
+    tileSize: 512,
+  });
+
+  const initialMap = new Map({
+    layers: [new TileLayer({ source: source })],
+    target: mapRef.current,
+    view: new View({}),
+  });
+
     initialMap.on('loadstart', () => mapRef.current?.classList.add('spinner'));
-    initialMap.on('loadend', () => mapRef.current?.classList.remove('spinner'));
-  
+    initialMap.on('loadend', () => {
+      mapRef.current?.classList.remove('spinner');
+      setIsLoading(false);
+    });
+
     setMap(initialMap);
-  
+
+    // Fake progress bar
+    let startTime = Date.now();
+    const duration = 21000; // 20 seconds
+
+    const updateProgress = () => {
+      const elapsedTime = Date.now() - startTime;
+      const rawProgress = (elapsedTime / duration) * 100;
+      
+      // Adjust progress to start fast, slow down, then speed up
+      let adjustedProgress;
+      if (rawProgress < 30) {
+        adjustedProgress = rawProgress * 1.5; // Start fast
+      } else if (rawProgress < 70) {
+        adjustedProgress = 45 + (rawProgress - 30) * 0.5; // Slow down
+      } else {
+        adjustedProgress = 65 + (rawProgress - 70) * 0.7; // Speed up
+      }
+
+      setProgress(Math.min(adjustedProgress, 100));
+
+      if (elapsedTime < duration) {
+        requestAnimationFrame(updateProgress);
+      }
+    };
+
+    requestAnimationFrame(updateProgress);
+
     return () => initialMap.setTarget(undefined);
   }, []);
 
@@ -696,43 +725,77 @@ function OpenLayersMap({
         },
       ] as MetadataItem[],
     },
+    {
+      title: "Image",
+      content: (feature: FeatureProperties | null) => {
+        const getImageType = (crownType: string) => {
+          switch (crownType) {
+            case 'all': return 'all';
+            case 'palms': return 'pinnately_leaved_palms';
+            case 'fallen': return 'fallen_tree';
+            case 'flowering': return 'flowering_canopy';
+            case 'cecropia': return 'cecropia';
+            default: return 'all';
+          }
+        };
+  
+        const imageType = getImageType(selectedCrownType);
+        const imageUrl = `https://abxnjdiyqerzhvjxxnei.supabase.co/storage/v1/object/public/${imageType}/${feature?.properties?.id}.jpg`;
+  
+        return (
+          <div className="w-full relative">
+          <Image
+            src={imageUrl}
+            alt={`Image of ${feature?.properties?.label || 'tree'}`}
+            width={200}
+            height={200}
+            className="rounded-md"
+          />
+          </div>
+        );
+      },
+    },
   ];
 
   return (
     <div ref={mapRef} className="map relative">
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-content">
+            <p className="text-white text-sm">Map loading - this may take up to 20 seconds</p>
+            <Progress value={progress} className="mt-4" />
+          </div>
+        </div>
+      )}
       {showCrowns && (hoveredFeature || selectedFeature) && (
         <div 
-          ref={featuresPanelRef}
-          id="features-panel" 
-          className={`absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg w-[250px] h-[205px] overflow-auto ${
-            selectedFeature ? 'border-2 border-green-500' : ''
-          }`}
-        >
-          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3']}>
-            {featureDetails.map((detail, index) => (
-              <AccordionItem key={index} value={`item-${index + 1}`}>
-                <AccordionTrigger>{detail.title}</AccordionTrigger>
-                <AccordionContent>
-                  {detail.content ? (
-                    detail.content(selectedFeature || hoveredFeature)
-                  ) : (
-                    <ul className="space-y-2">
-                      {detail.items.map((item) => (
-                        <li key={item.label} className="p-1 rounded">
-                          <strong>{item.label}:</strong> {item.value(selectedFeature || hoveredFeature)} {item.unit || ''}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          {((selectedFeature || hoveredFeature)?.properties?.id) && (
-            <>
-            </>
+  ref={featuresPanelRef}
+  id="features-panel" 
+  className={`absolute bottom-4 right-4 bg-white p-4 rounded-lg shadow-lg w-[250px] overflow-auto ${
+    selectedFeature ? 'border-2 border-green-500' : ''
+  }`}
+>
+  <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']}>
+    {featureDetails.map((detail, index) => (
+      <AccordionItem key={index} value={`item-${index + 1}`}>
+        <AccordionTrigger>{detail.title}</AccordionTrigger>
+        <AccordionContent>
+          {detail.content ? (
+            detail.content(selectedFeature || hoveredFeature)
+          ) : (
+            <ul className="space-y-2">
+              {detail.items.map((item) => (
+                <li key={item.label} className="p-1 rounded">
+                  <strong>{item.label}:</strong> {item.value(selectedFeature || hoveredFeature)} {item.unit || ''}
+                </li>
+              ))}
+            </ul>
           )}
-        </Accordion>
-      </div>
+        </AccordionContent>
+      </AccordionItem>
+    ))}
+  </Accordion>
+</div>
     )}
       <style jsx>{`
         .map {
@@ -742,6 +805,29 @@ function OpenLayersMap({
           position: absolute;
           top: 0;
           left: 0;
+        }
+
+        .loading-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(128, 128, 128, 0.8);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+
+        .loading-content {
+          text-align: center;
+        }
+
+        .loading-overlay p {
+          color: white;
+          font-size: 18px;
+          margin-bottom: 16px;
         }
 
         @keyframes spinner {

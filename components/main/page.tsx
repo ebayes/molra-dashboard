@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PanelLeftOpen, PanelLeftClose, Eye, EyeOff, Download } from "lucide-react";
+import { PanelLeftOpen, Download } from "lucide-react";
 import OpenLayersMap from "./map";
 import CrownsTopBar from "@/components/topbars/crowns";
 import OrthoTopBar from "@/components/topbars/ortho";
@@ -17,6 +17,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion-insights"
 import Image from 'next/image';
+import { Badge } from "@/components/ui/badge";
+import { Ruler, Diameter } from "lucide-react";
 
 export default function Main() {
   const [isRightPanelVisible, setIsRightPanelVisible] = useState(true);
@@ -29,10 +31,10 @@ export default function Main() {
   const [avgDiameter, setAvgDiameter] = useState(0);
   const [avgBiomass, setAvgBiomass] = useState(0);
   const [showDSM, setShowDSM] = useState(false);
-  const [showOrthomosaic, setShowOrthomosaic] = useState(false);
+  const [showOrthomosaic, setShowOrthomosaic] = useState(true);
   const [updateDSMLayer, setUpdateDSMLayer] = useState<any>(null);
   const [showDSMControls, setShowDSMControls] = useState(false);
-  const [activeTopBar, setActiveTopBar] = useState('blank');
+  const [activeTopBar, setActiveTopBar] = useState('ortho');
   const [showSiteBoundary, setShowSiteBoundary] = useState(true);
   const [activeHistogram, setActiveHistogram] = useState<string | null>(null);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -226,6 +228,13 @@ export default function Main() {
     </Button>
   </div>
 )}
+        {showCrowns && !activeHistogram && (
+          <div className="absolute top-4 left-4 bg-white bg-opacity-50 p-2 rounded-md z-10 max-w-[200px] items-center justify-center">
+            <p className="text-sm text-center">
+              Click the <Badge variant="secondary"><Ruler className="h-4 w-4" />Height</Badge> or <Badge variant="secondary"><Diameter className="h-4 w-4" />Diameter</Badge> buttons above to display/download histograms.<br/><br/> You can also hover/click bounding boxes to view individual tree metadata.
+            </p>
+          </div>
+        )}
           </div>
         </div>
         <div id="right" className={`w-[250px] min-w-[250px] flex flex-col gap-1 ${isRightPanelVisible ? 'hidden lg:flex' : 'hidden'}`}>
@@ -254,7 +263,12 @@ export default function Main() {
           </label>
         </div>
       <div className="checkbox-item">
-          <Checkbox id="show-orthomosaic" defaultChecked={true} checked={showOrthomosaic} onCheckedChange={handleOrthomosaicChange} />
+      <Checkbox 
+  id="show-orthomosaic" 
+        defaultChecked={true} 
+        checked={showOrthomosaic} 
+        onCheckedChange={handleOrthomosaicChange} 
+      />
           <label htmlFor="show-orthomosaic" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             Orthomosaic
           </label>
